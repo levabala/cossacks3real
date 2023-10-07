@@ -4,26 +4,99 @@ use bevy::prelude::*;
 pub struct Unit;
 
 #[derive(Component)]
-pub struct Position {
-    pub x: f32,
-    pub y: f32,
-}
+pub struct Position(pub Vec3);
 
 #[derive(Component)]
-pub enum Direction {
-    Up,
-    Right,
-    Down,
-    Left,
-    None,
+pub struct Speed(pub Vec3);
+
+#[derive(Component)]
+pub struct Direction(pub Vec3);
+
+#[derive(Bundle)]
+pub struct UnitBundle {
+    market: Unit,
+    position: Position,
+    speed: Speed,
+    direction: Direction,
+}
+
+impl Default for UnitBundle {
+    fn default() -> Self {
+        Self {
+            market: Unit,
+            position: Position(Vec3 {
+                x: 0.,
+                y: 0.,
+                z: 0.,
+            }),
+            speed: Speed(Vec3 {
+                x: 0.,
+                y: 0.,
+                z: 0.,
+            }),
+            direction: Direction(Vec3 {
+                x: 0.,
+                y: 0.,
+                z: 0.,
+            }),
+        }
+    }
 }
 
 fn unit_add(mut commands: Commands) {
     let units_array = [
-        (Unit, Position { x: 0.0, y: 0.0 }, Direction::Up),
-        (Unit, Position { x: 10.0, y: 1.0 }, Direction::Right),
-        (Unit, Position { x: 20.0, y: 30.0 }, Direction::Right),
-        (Unit, Position { x: 30.0, y: 20.0 }, Direction::None),
+        UnitBundle {
+            position: Position(Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            }),
+            direction: Direction(Vec3 {
+                x: 0.0,
+                y: -1.0,
+                z: 0.0,
+            }),
+            ..Default::default()
+        },
+        UnitBundle {
+            position: Position(Vec3 {
+                x: 10.0,
+                y: 30.0,
+                z: 20.0,
+            }),
+            direction: Direction(Vec3 {
+                x: 0.0,
+                y: 1.0,
+                z: 0.0,
+            }),
+            ..Default::default()
+        },
+        UnitBundle {
+            position: Position(Vec3 {
+                x: -20.0,
+                y: 10.0,
+                z: 10.0,
+            }),
+            direction: Direction(Vec3 {
+                x: 1.0,
+                y: 0.0,
+                z: 0.0,
+            }),
+            ..Default::default()
+        },
+        UnitBundle {
+            position: Position(Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            }),
+            direction: Direction(Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            }),
+            ..Default::default()
+        },
     ];
 
     for unit in units_array {
@@ -31,21 +104,14 @@ fn unit_add(mut commands: Commands) {
     }
 }
 
-#[derive(Resource)]
-struct PrintTimer(Timer);
-
 fn unit_move(time: Res<Time>, mut query: Query<(&mut Position, &Direction), With<Unit>>) {
     const SPEED: f32 = 30.;
 
     for (mut position, direction) in &mut query {
-        let delta = SPEED * time.delta_seconds();
-        match direction {
-            Direction::Up => position.y += delta,
-            Direction::Down => position.y -= delta,
-            Direction::Right => position.x += delta,
-            Direction::Left => position.x -= delta,
-            Direction::None => (),
-        }
+        let delta_scale = SPEED * time.delta_seconds();
+        let delta_vec = delta_scale * direction.0;
+
+        position.0 += delta_vec;
     }
 }
 
@@ -53,8 +119,7 @@ pub struct UnitPlugin;
 
 impl Plugin for UnitPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(PrintTimer(Timer::from_seconds(2.0, TimerMode::Repeating)))
-            .add_systems(Startup, unit_add)
+        app.add_systems(Startup, unit_add)
             .add_systems(Update, unit_move);
     }
 }

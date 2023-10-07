@@ -2,44 +2,22 @@ use crate::unit::*;
 use bevy::prelude::*;
 
 #[derive(Component)]
-pub struct Render;
+struct Render;
 
 fn setup(mut commands: Commands) {
     commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(0., 0., 700.0).looking_at(Vec3::ZERO, Vec3::Y),
+        transform: Transform::from_xyz(-50., -50., 300.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     });
 
     commands.spawn(PointLightBundle {
         point_light: PointLight {
-            intensity: 1500000.0,
-            range: 10000.,
+            intensity: 150000.0,
+            range: 1000.,
             shadows_enabled: true,
             ..default()
         },
-        transform: Transform::from_xyz(5.0, 10.0, 500.0),
-        ..default()
-    });
-
-    commands.spawn(PointLightBundle {
-        point_light: PointLight {
-            intensity: 1500000.0,
-            range: 10000.,
-            shadows_enabled: true,
-            ..default()
-        },
-        transform: Transform::from_xyz(500.0, 10.0, 500.0),
-        ..default()
-    });
-
-    commands.spawn(PointLightBundle {
-        point_light: PointLight {
-            intensity: 9000.0,
-            range: 10000.,
-            shadows_enabled: true,
-            ..default()
-        },
-        transform: Transform::from_xyz(50.0, -90.0, 100.0),
+        transform: Transform::from_xyz(5.0, 10.0, 100.0),
         ..default()
     });
 }

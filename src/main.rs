@@ -1,13 +1,13 @@
 use bevy::prelude::*;
 mod unit;
-mod unit_renderer_2d;
+mod unit_renderer;
 
 fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
             unit::UnitPlugin,
-            unit_renderer_2d::UnitRenderer2dPlugin,
+            unit_renderer::UnitRendererPlugin,
         ))
         .run()
 }

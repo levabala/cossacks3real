@@ -62,7 +62,7 @@ fn unit_add(mut commands: Commands) {
             position: Position(Vec3 {
                 x: 10.0,
                 y: 30.0,
-                z: 50.0,
+                z: 20.0,
             }),
             direction: Direction(Vec3 {
                 x: 0.0,

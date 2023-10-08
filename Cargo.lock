@@ -713,8 +713,6 @@ dependencies = [
  "bevy_picking_input",
  "bevy_picking_raycast",
  "bevy_picking_selection",
- "bevy_picking_sprite",
- "bevy_picking_ui",
 ]
 
 [[package]]
@@ -802,26 +800,6 @@ checksum = "61980e57b09ff29b52c2910ba5b4e9bcfe8f9481931e62fd277a16b6ec3390f2"
 dependencies = [
  "bevy",
  "bevy_eventlistener",
- "bevy_picking_core",
-]
-
-[[package]]
-name = "bevy_picking_sprite"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "179b555e09296ac77280e0c283c4e0f380dc64ddd5a02b5bd1773c00a6a3b9c5"
-dependencies = [
- "bevy",
- "bevy_picking_core",
-]
-
-[[package]]
-name = "bevy_picking_ui"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1533a7723939a1dfad933da76a4cfb0d37eb15abd64519c0db2477f04de1ee8b"
-dependencies = [
- "bevy",
  "bevy_picking_core",
 ]
 

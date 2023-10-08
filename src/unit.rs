@@ -8,7 +8,7 @@ pub struct Unit;
 pub struct Position(pub Vec3);
 
 #[derive(Component)]
-pub struct MaxSpeed(f32);
+pub struct MaxSpeed(pub f32);
 
 #[derive(Component)]
 pub struct Direction(pub Vec3);
@@ -25,10 +25,10 @@ pub struct Move {
 
 #[derive(Bundle)]
 pub struct UnitBundle {
-    market: Unit,
-    position: Position,
-    max_speed: MaxSpeed,
-    direction: Direction,
+    pub market: Unit,
+    pub position: Position,
+    pub max_speed: MaxSpeed,
+    pub direction: Direction,
 }
 
 impl Default for UnitBundle {
@@ -40,84 +40,6 @@ impl Default for UnitBundle {
             direction: Direction(default()),
         }
     }
-}
-
-fn unit_add(mut commands: Commands) {
-    commands.spawn((
-        UnitBundle {
-            max_speed: MaxSpeed(15.),
-            position: Position(Vec3 {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-            }),
-            direction: Direction(Vec3 {
-                x: 0.0,
-                y: -1.0,
-                z: 0.0,
-            }),
-            ..Default::default()
-        },
-        Waypoints(VecDeque::from([
-            Vec3 {
-                x: 30.0,
-                y: 30.0,
-                z: 0.,
-            },
-            Vec3 {
-                x: 40.0,
-                y: 30.0,
-                z: 0.,
-            },
-            Vec3 {
-                x: 0.,
-                y: 0.,
-                z: 0.,
-            },
-        ])),
-    ));
-    commands.spawn(UnitBundle {
-        max_speed: MaxSpeed(15.),
-        position: Position(Vec3 {
-            x: 10.0,
-            y: 30.0,
-            z: 20.0,
-        }),
-        direction: Direction(Vec3 {
-            x: 0.0,
-            y: 1.0,
-            z: 0.0,
-        }),
-        ..Default::default()
-    });
-    commands.spawn(UnitBundle {
-        max_speed: MaxSpeed(15.),
-        position: Position(Vec3 {
-            x: -20.0,
-            y: 10.0,
-            z: 10.0,
-        }),
-        direction: Direction(Vec3 {
-            x: 1.0,
-            y: 0.0,
-            z: 0.0,
-        }),
-        ..Default::default()
-    });
-    commands.spawn(UnitBundle {
-        max_speed: MaxSpeed(15.),
-        position: Position(Vec3 {
-            x: -10.0,
-            y: -50.0,
-            z: 0.0,
-        }),
-        direction: Direction(Vec3 {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-        }),
-        ..Default::default()
-    });
 }
 
 fn calc_move_path(_p1: Vec3, p2: Vec3) -> VecDeque<Vec3> {
@@ -140,16 +62,7 @@ fn unit_move_start(
 fn unit_move_update(
     mut commands: Commands,
     time: Res<Time>,
-    mut query: Query<
-        (
-            Entity,
-            &mut Position,
-            &mut Waypoints,
-            &mut Move,
-            &MaxSpeed,
-        ),
-        With<Unit>,
-    >,
+    mut query: Query<(Entity, &mut Position, &mut Waypoints, &mut Move, &MaxSpeed), With<Unit>>,
 ) {
     for (entity, mut position, mut waypoints, mut moving, max_speed) in &mut query {
         if moving.move_path.len() == 0 {
@@ -196,7 +109,6 @@ pub struct UnitPlugin;
 
 impl Plugin for UnitPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, unit_add)
-            .add_systems(Update, (unit_move_start, unit_move_update));
+        app.add_systems(Update, (unit_move_start, unit_move_update));
     }
 }

@@ -6,6 +6,8 @@ mod unit_test_enities;
 mod unit_move;
 mod mouse_controls;
 mod unit_controls_mouse;
+mod map;
+mod map_renderer;
 
 fn main() {
     App::new()
@@ -21,6 +23,8 @@ fn main() {
             unit_move::UnitMovePlugin,
             mouse_controls::MouseControls,
             unit_controls_mouse::UnitControlsMouse,
+            map::MapPlugin,
+            map_renderer::MapRendererPlugin,
         ))
         .run()
 }

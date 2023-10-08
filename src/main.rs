@@ -3,6 +3,7 @@ mod unit;
 mod unit_renderer;
 mod unit_waypoint_renderer;
 mod unit_test_enities;
+mod unit_move;
 
 fn main() {
     App::new()
@@ -15,6 +16,7 @@ fn main() {
             unit_renderer::UnitRendererPlugin,
             unit_waypoint_renderer::UnitWaypointRendererPlugin,
             unit_test_enities::UnitTestEntitiesPlugin,
+            unit_move::UnitMovePlugin,
         ))
         .run()
 }

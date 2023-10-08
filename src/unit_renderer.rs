@@ -1,9 +1,11 @@
 use crate::unit::*;
 use bevy::prelude::*;
 
+// TODO: remove the component. use Added<> in query instead
 #[derive(Component)]
 struct Render;
 
+// TODO: move to separate plugin
 fn setup(mut commands: Commands) {
     commands.spawn(Camera3dBundle {
         transform: Transform::from_xyz(-50., -50., 300.0).looking_at(Vec3::ZERO, Vec3::Y),
@@ -12,16 +14,17 @@ fn setup(mut commands: Commands) {
 
     commands.spawn(PointLightBundle {
         point_light: PointLight {
-            intensity: 150000.0,
+            intensity: 550000.0,
             range: 1000.,
             shadows_enabled: true,
             ..default()
         },
-        transform: Transform::from_xyz(5.0, 10.0, 100.0),
+        transform: Transform::from_xyz(5.0, 10.0, 200.0),
         ..default()
     });
 }
 
+// TODO: move to unit definition
 const SIZE: f32 = 10.0;
 
 fn draw_units(

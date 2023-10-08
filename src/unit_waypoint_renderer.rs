@@ -1,21 +1,38 @@
 use crate::unit::*;
 use crate::unit_move::*;
 use bevy::prelude::*;
+use std::collections::VecDeque;
 
 #[derive(Component)]
-struct Render;
+struct WaypointsDrawed(VecDeque<Vec3>);
 
 const SIZE: f32 = 2.0;
+
+fn create_waypoints_drawed(
+    mut commands: Commands,
+    mut query: Query<Entity, (With<Unit>, Without<WaypointsDrawed>)>,
+) {
+    for entity in &mut query {
+        commands.entity(entity).insert(WaypointsDrawed(VecDeque::new()));
+    }
+}
 
 fn draw_waypoints(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    query: Query<(Entity, &Waypoints), (With<Unit>, Without<Render>)>,
+    mut query: Query<(&Waypoints, &mut WaypointsDrawed), With<Unit>>,
 ) {
-    for (entity, waypoints) in query.iter() {
+    for (waypoints, mut waypoints_drawed) in &mut query {
         // TODO: remove .cloned()
         for waypoint in waypoints.0.iter().cloned() {
+            match waypoints_drawed.0.iter().position(|w| *w == waypoint) {
+                Some(_) => continue,
+                None => {
+                    waypoints_drawed.0.push_back(waypoint)
+                }
+            }
+
             let material = materials.add(StandardMaterial {
                 base_color: Color::RED,
                 ..default()
@@ -35,7 +52,6 @@ fn draw_waypoints(
                 transform: Transform::from_translation(waypoint),
                 ..default()
             });
-            commands.entity(entity).insert(Render);
         }
     }
 }
@@ -44,6 +60,6 @@ pub struct UnitWaypointRendererPlugin;
 
 impl Plugin for UnitWaypointRendererPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, draw_waypoints);
+        app.add_systems(Update, (create_waypoints_drawed, draw_waypoints));
     }
 }

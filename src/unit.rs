@@ -8,14 +8,14 @@ pub struct Position(pub Vec3);
 
 #[derive(Bundle)]
 pub struct UnitBundle {
-    pub market: Unit,
+    pub marker: Unit,
     pub position: Position,
 }
 
 impl Default for UnitBundle {
     fn default() -> Self {
         Self {
-            market: Unit,
+            marker: Unit,
             position: Position(default()),
         }
     }

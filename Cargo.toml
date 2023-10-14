@@ -8,3 +8,6 @@ edition = "2021"
 [dependencies]
 bevy = "0.11.3"
 bevy_mod_picking = { version = "0.15.0", default-features = false, features = ['backend_raycast', 'selection', 'highlight'] }
+bevy_polyline = "0.7.0"
+rand = "0.8.5"
+smooth-bevy-cameras = "0.9.0"

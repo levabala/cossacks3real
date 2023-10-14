@@ -5,27 +5,8 @@ use bevy::prelude::*;
 #[derive(Component)]
 struct Render;
 
-// TODO: move to separate plugin
-fn setup(mut commands: Commands) {
-    commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(-50., -50., 300.0).looking_at(Vec3::ZERO, Vec3::Y),
-        ..default()
-    });
-
-    commands.spawn(PointLightBundle {
-        point_light: PointLight {
-            intensity: 550000.0,
-            range: 1000.,
-            shadows_enabled: true,
-            ..default()
-        },
-        transform: Transform::from_xyz(5.0, 10.0, 200.0),
-        ..default()
-    });
-}
-
 // TODO: move to unit definition
-const SIZE: f32 = 10.0;
+const SIZE: f32 = 4.0;
 
 fn draw_units(
     mut commands: Commands,
@@ -61,7 +42,6 @@ pub struct UnitRendererPlugin;
 
 impl Plugin for UnitRendererPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (setup, draw_units));
         app.add_systems(Update, (draw_units, update_unit_drawing));
     }
 }

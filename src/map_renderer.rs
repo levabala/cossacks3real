@@ -1,7 +1,7 @@
 use crate::map::*;
 use bevy::prelude::*;
 
-const MAP_HEIGHT: f32 = 3.;
+const MAP_HEIGHT: f32 = 0.;
 
 fn draw_map(
     mut commands: Commands,

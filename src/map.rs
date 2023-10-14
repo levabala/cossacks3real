@@ -16,7 +16,7 @@ fn setup(mut commands: Commands) {
         Position(Vec3 {
             x: 0.,
             y: 0.,
-            z: -10.,
+            z: -0.1,
         }),
     ));
 }

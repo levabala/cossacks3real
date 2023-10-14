@@ -8,7 +8,7 @@ fn unit_add(mut commands: Commands) {
         UnitBundle {
             position: Position(Vec3 {
                 x: 0.0,
-                y: 0.0,
+                y: 20.0,
                 z: 0.0,
             }),
             ..Default::default()
@@ -32,7 +32,7 @@ fn unit_add(mut commands: Commands) {
             },
             Vec3 {
                 x: 0.,
-                y: 0.,
+                y: 20.,
                 z: 0.,
             },
         ])),

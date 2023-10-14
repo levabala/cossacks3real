@@ -9,13 +9,13 @@ mod mouse_controls;
 mod unit_controls_mouse;
 mod map;
 mod map_renderer;
+mod formation;
+mod formation_test_entities;
+mod formation_renderer;
 mod camera;
 
 fn main() {
     App::new()
-        .add_systems(Startup, || {
-            println!("start\n");
-        })
         .add_plugins((
             DefaultPlugins,
             scene_setup::SceneSetupPlugin,
@@ -28,6 +28,9 @@ fn main() {
             unit_controls_mouse::UnitControlsMouse,
             map::MapPlugin,
             map_renderer::MapRendererPlugin,
+            formation::FormationPlugin,
+            formation_test_entities::FormationTestEntitiesPlugin,
+            formation_renderer::FormationRendererPlugin,
             camera::CameraPlugin,
         ))
         .run()

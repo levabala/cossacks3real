@@ -10,9 +10,9 @@ fn add_camera_raycast(
     }
 }
 
-pub struct MouseControls;
+pub struct MouseControlsPlugin;
 
-impl Plugin for MouseControls {
+impl Plugin for MouseControlsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(DefaultPickingPlugins)
             .add_systems(Update, add_camera_raycast);

@@ -1,5 +1,5 @@
-use crate::map::*;
-use crate::unit::*;
+use crate::map::map_core::*;
+use crate::unit::unit_core::*;
 use crate::unit_move::*;
 use bevy::prelude::*;
 use bevy_mod_picking::prelude::*;

@@ -1,4 +1,4 @@
-use crate::formation::*;
+use crate::formation::formation_core::*;
 use bevy::{pbr::NotShadowCaster, prelude::*};
 use bevy_mod_picking::prelude::*;
 
@@ -54,7 +54,6 @@ fn create_formation_box(
             })
             .insert(NotShadowCaster)
             .insert(HIGHLIGHT_TINT.clone())
-            // .remove::<Handle<StandardMaterial>>()
             .insert((PickableBundle::default(), RaycastPickTarget::default()));
     }
 }

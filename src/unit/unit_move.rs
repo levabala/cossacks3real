@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use std::collections::VecDeque;
-use crate::unit::*;
+use crate::unit::unit_core::*;
 
 #[derive(Component)]
 pub struct MaxSpeed(pub f32);

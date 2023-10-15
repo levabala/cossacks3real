@@ -1,20 +1,27 @@
 use bevy::prelude::*;
+
 mod camera;
-mod formation;
-mod formation_controls_keyboard;
-mod formation_controls_mouse;
-mod formation_renderer;
-mod formation_test_entities;
-mod map;
-mod map_renderer;
 mod mouse_controls;
 mod scene_setup;
+
+mod formation;
+use formation::formation_core;
+use formation::formation_controls_keyboard;
+use formation::formation_controls_mouse;
+use formation::formation_renderer;
+use formation::formation_test_entities;
+
+mod map;
+use map::map_core;
+use map::map_renderer;
+
 mod unit;
-mod unit_controls_mouse;
-mod unit_move;
-mod unit_renderer;
-mod unit_test_enities;
-mod unit_waypoint_renderer;
+use unit::unit_controls_mouse;
+use unit::unit_core;
+use unit::unit_move;
+use unit::unit_renderer;
+use unit::unit_test_enities;
+use unit::unit_waypoint_renderer;
 
 fn main() {
     App::new()
@@ -24,9 +31,9 @@ fn main() {
             mouse_controls::MouseControlsPlugin,
             camera::CameraPlugin,
         ))
-        .add_plugins((map::MapPlugin, map_renderer::MapRendererPlugin))
+        .add_plugins((map_core::MapPlugin, map_renderer::MapRendererPlugin))
         .add_plugins((
-            unit::UnitPlugin,
+            unit_core::UnitPlugin,
             unit_renderer::UnitRendererPlugin,
             unit_waypoint_renderer::UnitWaypointRendererPlugin,
             unit_test_enities::UnitTestEntitiesPlugin,
@@ -34,7 +41,7 @@ fn main() {
             unit_controls_mouse::UnitControlsMousePlugin,
         ))
         .add_plugins((
-            formation::FormationPlugin,
+            formation_core::FormationPlugin,
             formation_test_entities::FormationTestEntitiesPlugin,
             formation_renderer::FormationRendererPlugin,
             formation_controls_keyboard::FormationControlsKeyboardPlugin,

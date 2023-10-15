@@ -1,4 +1,4 @@
-use crate::formation::*;
+use crate::formation::formation_core::*;
 use bevy::prelude::*;
 use bevy_polyline::prelude::*;
 

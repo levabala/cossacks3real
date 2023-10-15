@@ -1,4 +1,4 @@
-use crate::map::*;
+use crate::map::map_core::*;
 use bevy::prelude::*;
 
 const MAP_HEIGHT: f32 = 0.;

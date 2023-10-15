@@ -1,4 +1,4 @@
-use crate::unit::*;
+use crate::unit::unit_core::*;
 use bevy::prelude::*;
 
 // TODO: remove the component. use Added<> in query instead

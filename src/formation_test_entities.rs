@@ -27,15 +27,16 @@ fn formation_add(mut commands: Commands) {
 
     commands.spawn(FormationBundle {
         units: Units(units),
-        zone: Zone {
-            position: Vec3 {
+        zone: Zone::new(
+            Vec3 {
                 x: 0.,
                 y: 0.,
                 z: 0.,
             },
-            width: 40.,
-            height: 20.,
-        },
+            40.,
+            30.,
+            std::f32::consts::PI * 0.2,
+        ),
         ..default()
     });
 }

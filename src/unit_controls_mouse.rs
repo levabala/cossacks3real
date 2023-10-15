@@ -8,6 +8,7 @@ use std::collections::VecDeque;
 #[derive(Component)]
 pub struct Initialized;
 
+// TODO: create a separate pick mesh?
 fn make_unit_pickable(mut commands: Commands, query: Query<Entity, Added<Unit>>) {
     for entity in query.iter() {
         commands
@@ -67,9 +68,9 @@ fn add_map_click_listener(
     }
 }
 
-pub struct UnitControlsMouse;
+pub struct UnitControlsMousePlugin;
 
-impl Plugin for UnitControlsMouse {
+impl Plugin for UnitControlsMousePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, (make_unit_pickable, add_map_click_listener));
     }

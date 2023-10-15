@@ -6,23 +6,13 @@ mod scene_setup;
 mod axis_render;
 
 mod formation;
-use formation::formation_core;
-use formation::formation_controls_keyboard;
-use formation::formation_controls_mouse;
-use formation::formation_renderer;
-use formation::formation_test_entities;
+use formation::*;
 
 mod map;
-use map::map_core;
-use map::map_renderer;
+use map::*;
 
 mod unit;
-use unit::unit_controls_mouse;
-use unit::unit_core;
-use unit::unit_move;
-use unit::unit_renderer;
-use unit::unit_test_enities;
-use unit::unit_waypoint_renderer;
+use unit::*;
 
 fn main() {
     App::new()

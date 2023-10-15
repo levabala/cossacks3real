@@ -9,8 +9,21 @@ pub struct Formation;
 #[derive(Component)]
 pub struct Zone {
     pub position: Vec3,
-    pub width: f32,
-    pub height: f32,
+    pub vector_base: Vec3,
+    pub vector_height: Vec3,
+}
+
+impl Zone {
+    pub fn new(position: Vec3, width: f32, height: f32, angle: f32) -> Zone {
+        Zone {
+            position,
+            vector_base: Vec3::from((Vec2::from_angle(angle) * width, 0.)),
+            vector_height: Vec3::from((
+                Vec2::from_angle(angle + std::f32::consts::PI / 2.) * height,
+                0.,
+            )),
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -43,15 +56,16 @@ impl Default for FormationBundle {
     fn default() -> Self {
         Self {
             marker: Formation,
-            zone: Zone {
-                position: Vec3 {
+            zone: Zone::new(
+                Vec3 {
                     x: 0.,
                     y: 0.,
                     z: 0.,
                 },
-                width: 10.,
-                height: 10.,
-            },
+                20.,
+                10.,
+                0.,
+            ),
             units: Units(default()),
             slots_params: SlotsParams { rows: 3, cols: 4 },
         }
@@ -66,11 +80,16 @@ fn generate_slots(
         let mut slots =
             Vec::<Slot>::with_capacity((slots_params.rows * slots_params.cols) as usize);
         for index_row in 0..slots_params.rows {
+            let vec_height = zone.vector_height / (slots_params.rows - 1) as f32 * index_row as f32
+                - zone.vector_height / 2.;
             for index_col in 0..slots_params.cols {
-                let x: f32 = zone.width * index_col as f32 / (slots_params.cols - 1) as f32
-                    - zone.width / 2.;
-                let y: f32 = zone.height * index_row as f32 / (slots_params.rows - 1) as f32
-                    - zone.height / 2.;
+                let vec_width = zone.vector_base / (slots_params.cols - 1) as f32
+                    * index_col as f32
+                    - zone.vector_base / 2.;
+
+                let vec_delta = vec_height + vec_width;
+                let x = zone.position.x + vec_delta.x;
+                let y = zone.position.y + vec_delta.y;
                 let z = zone.position.z;
                 let slot = Slot {
                     position: Vec3 { x, y, z },

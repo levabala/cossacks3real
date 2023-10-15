@@ -4,31 +4,11 @@ use bevy_polyline::prelude::*;
 
 fn generate_zone_vertices(zone: &Zone) -> Vec<Vec3> {
     let verticies: [Vec3; 5] = [
-        Vec3 {
-            x: zone.position.x - zone.width / 2.,
-            y: zone.position.y - zone.height / 2.,
-            z: zone.position.z,
-        },
-        Vec3 {
-            x: zone.position.x + zone.width / 2.,
-            y: zone.position.y - zone.height / 2.,
-            z: zone.position.z,
-        },
-        Vec3 {
-            x: zone.position.x + zone.width / 2.,
-            y: zone.position.y + zone.height / 2.,
-            z: zone.position.z,
-        },
-        Vec3 {
-            x: zone.position.x - zone.width / 2.,
-            y: zone.position.y + zone.height / 2.,
-            z: zone.position.z,
-        },
-        Vec3 {
-            x: zone.position.x - zone.width / 2.,
-            y: zone.position.y - zone.height / 2.,
-            z: zone.position.z,
-        },
+        zone.position - (zone.vector_base / 2.) - (zone.vector_height / 2.),
+        zone.position - (zone.vector_base / 2.) + (zone.vector_height / 2.),
+        zone.position + (zone.vector_base / 2.) + (zone.vector_height / 2.),
+        zone.position + (zone.vector_base / 2.) - (zone.vector_height / 2.),
+        zone.position - (zone.vector_base / 2.) - (zone.vector_height / 2.),
     ];
 
     return Vec::from(verticies);

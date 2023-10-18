@@ -36,6 +36,7 @@ fn main() {
             formation_core::FormationPlugin,
             formation_test_entities::FormationTestEntitiesPlugin,
             formation_renderer::FormationRendererPlugin,
+            formation_move::FormationMovePlugin,
             formation_controls_keyboard::FormationControlsKeyboardPlugin,
             formation_controls_mouse::FormationControlsMousePlugin,
         ))

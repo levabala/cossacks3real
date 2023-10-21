@@ -21,7 +21,7 @@ fn formation_add(mut commands: Commands) {
                         }),
                         ..Default::default()
                     },
-                    MaxSpeed(15.),
+                    MaxSpeed(40.),
                 ))
                 .id();
         })
@@ -32,26 +32,38 @@ fn formation_add(mut commands: Commands) {
             units: Units(units),
             zone: Zone::new(
                 Vec3 {
+                    x: 30.,
+                    y: 20.,
+                    z: 0.,
+                },
+                50.,
+                30.,
+                std::f32::consts::PI * 0.05,
+            ),
+            ..default()
+        })
+        .insert(NextZonesPath(VecDeque::from([
+            NextZone::new(
+                Vec3 {
                     x: 0.,
-                    y: 0.,
+                    y: 50.,
                     z: 0.,
                 },
                 40.,
                 30.,
-                std::f32::consts::PI * 0.2,
+                std::f32::consts::PI * 0.,
             ),
-            ..default()
-        })
-        .insert(NextZonesPath(VecDeque::from([NextZone::new(
-            Vec3 {
-                x: 0.,
-                y: 50.,
-                z: 0.,
-            },
-            40.,
-            30.,
-            std::f32::consts::PI * 0.2,
-        )])));
+            NextZone::new(
+                Vec3 {
+                    x: -30.,
+                    y: 40.,
+                    z: 0.,
+                },
+                50.,
+                50.,
+                std::f32::consts::PI * 1.2,
+            ),
+        ])));
 }
 
 pub struct FormationTestEntitiesPlugin;

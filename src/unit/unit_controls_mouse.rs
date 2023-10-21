@@ -29,7 +29,7 @@ fn create_waypoints_for_selected(
     }
 
     let Some(position) = event.hit.position else {
-        println!("no position is presented");
+        eprintln!("no position is presented");
         return;
     };
 

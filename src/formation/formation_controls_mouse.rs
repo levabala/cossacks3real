@@ -29,21 +29,9 @@ fn create_formation_box(
     query: Query<(Entity, &Zone), Added<Formation>>,
 ) {
     for (entity, zone) in query.iter() {
-        let mut transform = Transform::from_translation(zone.position);
-        transform.rotate_z(zone.vector_base.angle_between(Vec3::X));
-
-        commands
-            .entity(entity)
-            .insert(PbrBundle {
-                mesh: meshes.add(
-                    shape::Box::new(
-                        zone.vector_base.length(),
-                        zone.vector_height.length(),
-                        FORMATION_HEIGHT,
-                    )
-                    .into(),
-                ),
-                transform,
+        let pick_box = commands
+            .spawn(PbrBundle {
+                mesh: meshes.add(shape::Box::new(zone.width, zone.height, FORMATION_HEIGHT).into()),
                 material: materials.add(StandardMaterial {
                     base_color: Color::rgba(1., 1., 0., 0.05),
                     alpha_mode: AlphaMode::Blend,
@@ -54,7 +42,10 @@ fn create_formation_box(
             })
             .insert(NotShadowCaster)
             .insert(HIGHLIGHT_TINT.clone())
-            .insert((PickableBundle::default(), RaycastPickTarget::default()));
+            .insert((PickableBundle::default(), RaycastPickTarget::default()))
+            .id();
+
+        commands.entity(entity).add_child(pick_box);
     }
 }
 

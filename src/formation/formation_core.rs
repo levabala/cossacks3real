@@ -9,19 +9,18 @@ pub struct Formation;
 #[derive(Component)]
 pub struct Zone {
     pub position: Vec3,
-    pub vector_base: Vec3,
-    pub vector_height: Vec3,
+    pub width: f32,
+    pub height: f32,
+    pub direction: Vec2,
 }
 
 impl Zone {
     pub fn new(position: Vec3, width: f32, height: f32, angle: f32) -> Zone {
         Zone {
             position,
-            vector_base: Vec3::from((Vec2::from_angle(angle) * width, 0.)),
-            vector_height: Vec3::from((
-                Vec2::from_angle(angle + std::f32::consts::PI / 2.) * height,
-                0.,
-            )),
+            width,
+            height,
+            direction: Vec2::from_angle(angle)
         }
     }
 }
@@ -79,13 +78,18 @@ fn generate_slots(
     for (entity, zone, slots_params) in query.iter() {
         let mut slots =
             Vec::<Slot>::with_capacity((slots_params.rows * slots_params.cols) as usize);
+        let vector_vertical = zone.direction * zone.height;
+        let vector_horizontal = Vec2 {
+            x: -zone.direction.y,
+            y: zone.direction.x,
+        } * zone.width;
+
         for index_row in 0..slots_params.rows {
-            let vec_height = zone.vector_height / (slots_params.rows - 1) as f32 * index_row as f32
-                - zone.vector_height / 2.;
+            let vec_height = vector_vertical / (slots_params.rows - 1) as f32 * index_row as f32
+                - vector_vertical / 2.;
             for index_col in 0..slots_params.cols {
-                let vec_width = zone.vector_base / (slots_params.cols - 1) as f32
-                    * index_col as f32
-                    - zone.vector_base / 2.;
+                let vec_width = vector_horizontal / (slots_params.cols - 1) as f32 * index_col as f32
+                    - vector_horizontal / 2.;
 
                 let vec_delta = vec_height + vec_width;
                 let x = zone.position.x + vec_delta.x;
@@ -165,7 +169,7 @@ fn control_assigned_units(
                             }
                         }
                         Err(e) => {
-                            println!("failed to acquire unit position: {:?}", e);
+                            eprintln!("failed to acquire unit position: {:?}", e);
                         }
                     }
                 }

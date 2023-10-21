@@ -1,6 +1,10 @@
-use crate::formation::formation_core::*;
+use std::collections::VecDeque;
+
+use crate::{formation::formation_core::*, map::map_controls_mouse::MapClickEvent};
 use bevy::{pbr::NotShadowCaster, prelude::*};
 use bevy_mod_picking::prelude::*;
+
+use super::formation_move::{NextZone, NextZonesPath};
 
 #[derive(Component)]
 pub struct Initialized;
@@ -68,10 +72,51 @@ fn make_formation_pickable(mut commands: Commands, query: Query<Entity, Added<Fo
     for entity in query.iter() {
         commands
             .entity(entity)
-            .insert((PickableBundle::default(), RaycastPickTarget::default()))
-            .insert(On::<Pointer<Click>>::run(|| {
-                println!("formation click");
-            }));
+            .insert((PickableBundle::default(), RaycastPickTarget::default()));
+    }
+}
+
+fn selected_formation_go_to(
+    mut events: EventReader<MapClickEvent>,
+    mut commands: Commands,
+    mut query_select: Query<(&PickSelection, &mut Parent), With<FormationBoxDrawing>>,
+    mut query_formation: Query<(Entity, &Zone), With<Formation>>,
+) {
+    for event in events.iter() {
+        println!("-------------- selected_formation_go_to");
+        if event.0.button != PointerButton::Secondary {
+            return;
+        }
+
+        let Some(position) = event.0.hit.position else {
+            eprintln!("no position is presented");
+            return;
+        };
+
+        for (pick_selection, parent) in &mut query_select {
+            if !pick_selection.is_selected {
+                continue;
+            }
+
+            let Ok(( formation, zone )) = query_formation.get_mut(parent.get()) else {
+                eprintln!("not found matching formation");
+                continue;
+            };
+
+            let next_position = Vec3 {
+                z: zone.position.z,
+                ..position
+            };
+
+            commands
+                .entity(formation)
+                .insert(NextZonesPath(VecDeque::from([NextZone {
+                    position: next_position,
+                    width: zone.width,
+                    height: zone.height,
+                    direction: zone.direction,
+                }])));
+        }
     }
 }
 
@@ -79,6 +124,13 @@ pub struct FormationControlsMousePlugin;
 
 impl Plugin for FormationControlsMousePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (draw_formation_box, make_formation_pickable));
+        app.add_systems(
+            Update,
+            (
+                draw_formation_box,
+                make_formation_pickable,
+                selected_formation_go_to,
+            ),
+        );
     }
 }

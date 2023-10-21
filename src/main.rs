@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 
+mod axis_render;
 mod camera;
 mod mouse_controls;
 mod scene_setup;
-mod axis_render;
 
 mod formation;
 use formation::*;
@@ -23,7 +23,11 @@ fn main() {
             camera::CameraPlugin,
             axis_render::AxisRendererPlugin,
         ))
-        .add_plugins((map_core::MapPlugin, map_renderer::MapRendererPlugin))
+        .add_plugins((
+            map_core::MapPlugin,
+            map_renderer::MapRendererPlugin,
+            map_controls_mouse::MapControlsMousePlugin,
+        ))
         .add_plugins((
             unit_core::UnitPlugin,
             unit_renderer::UnitRendererPlugin,

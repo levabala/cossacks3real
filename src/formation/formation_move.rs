@@ -3,7 +3,7 @@ use crate::unit::unit_core::*;
 use bevy::prelude::*;
 use std::collections::VecDeque;
 
-// TODO: prevent dublication. can't use Zone because it's treated as component..
+// TODO: prevent dublication. can't use Zone because it's treated as component.. (just wrap it?)
 pub struct NextZone {
     pub position: Vec3,
     pub width: f32,

@@ -9,6 +9,7 @@ pub struct Size(pub Vec2);
 #[derive(Component)]
 pub struct Position(pub Vec3);
 
+// TODO: move to separate file
 fn setup(mut commands: Commands) {
     commands.spawn((
         Map,

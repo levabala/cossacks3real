@@ -27,10 +27,10 @@ pub struct NextZonesPath(pub VecDeque<NextZone>);
 
 fn move_zone(
     mut commands: Commands,
-    mut query_slot: Query<(Entity, &Slots, &mut NextZonesPath), With<Formation>>,
+    mut query_slot: Query<(Entity, &Slots, &mut NextZonesPath, &mut Zone), With<Formation>>,
     query_unit: Query<&Position, With<Unit>>,
 ) {
-    for (entity, slots, mut next_zones_path) in &mut query_slot {
+    for (entity, slots, mut next_zones_path, mut zone) in &mut query_slot {
         if next_zones_path.0.len() == 0 {
             commands.entity(entity).remove::<NextZonesPath>();
             continue;
@@ -62,12 +62,11 @@ fn move_zone(
         let next_zone_option = next_zones_path.0.pop_back();
         let Some(next_zone) = next_zone_option else { eprintln!("no next zone found"); continue; };
         commands.entity(entity).remove::<Slots>();
-        commands.entity(entity).insert(Zone {
-            position: next_zone.position,
-            width: next_zone.width,
-            height: next_zone.height,
-            direction: next_zone.direction,
-        });
+
+        zone.position = next_zone.position;
+        zone.width = next_zone.width;
+        zone.height = next_zone.height;
+        zone.direction = next_zone.direction;
     }
 }
 

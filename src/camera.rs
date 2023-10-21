@@ -12,7 +12,7 @@ fn setup(mut commands: Commands) {
                 mouse_translate_sensitivity: Vec2::splat(10.),
                 ..default()
             },
-            Vec3::new(-50., -50., 300.0),
+            Vec3::new(-50., -100., 300.0),
             Vec3::new(0., 0., 0.),
             Vec3::Y,
         ));

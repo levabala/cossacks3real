@@ -22,15 +22,30 @@ const HIGHLIGHT_TINT: Highlight<StandardMaterial> = Highlight {
     })),
 };
 
-fn create_formation_box(
+#[derive(Component)]
+pub struct FormationBoxDrawing;
+
+// TODO: modify instead of replace
+fn draw_formation_box(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    query: Query<(Entity, &Zone), Added<Formation>>,
+    query: Query<(Entity, &Zone, Option<&Children>), (With<Formation>, Changed<Zone>)>,
+    query_formation_box: Query<Entity, With<FormationBoxDrawing>>,
 ) {
-    for (entity, zone) in query.iter() {
+    for (entity, zone, children_option) in query.iter() {
+        match children_option {
+            Some(children) => {
+                for pick_box_outdated in query_formation_box.iter_many(children) {
+                    commands.entity(pick_box_outdated).despawn();
+                }
+            }
+            None => (),
+        }
+
         let pick_box = commands
-            .spawn(PbrBundle {
+            .spawn(FormationBoxDrawing)
+            .insert(PbrBundle {
                 mesh: meshes.add(shape::Box::new(zone.width, zone.height, FORMATION_HEIGHT).into()),
                 material: materials.add(StandardMaterial {
                     base_color: Color::rgba(1., 1., 0., 0.05),
@@ -64,6 +79,6 @@ pub struct FormationControlsMousePlugin;
 
 impl Plugin for FormationControlsMousePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (create_formation_box, make_formation_pickable));
+        app.add_systems(Update, (draw_formation_box, make_formation_pickable));
     }
 }

@@ -6,19 +6,18 @@ use std::collections::VecDeque;
 // TODO: prevent dublication. can't use Zone because it's treated as component..
 pub struct NextZone {
     pub position: Vec3,
-    pub vector_base: Vec3,
-    pub vector_height: Vec3,
+    pub width: f32,
+    pub height: f32,
+    pub direction: Vec2,
 }
 
 impl NextZone {
     pub fn new(position: Vec3, width: f32, height: f32, angle: f32) -> NextZone {
         NextZone {
             position,
-            vector_base: Vec3::from((Vec2::from_angle(angle) * width, 0.)),
-            vector_height: Vec3::from((
-                Vec2::from_angle(angle + std::f32::consts::PI / 2.) * height,
-                0.,
-            )),
+            width,
+            height,
+            direction: Vec2::from_angle(angle),
         }
     }
 }
@@ -65,8 +64,9 @@ fn move_zone(
         commands.entity(entity).remove::<Slots>();
         commands.entity(entity).insert(Zone {
             position: next_zone.position,
-            vector_base: next_zone.vector_base,
-            vector_height: next_zone.vector_height,
+            width: next_zone.width,
+            height: next_zone.height,
+            direction: next_zone.direction,
         });
     }
 }

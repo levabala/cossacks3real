@@ -3,15 +3,40 @@ use bevy::prelude::*;
 use bevy_polyline::prelude::*;
 
 fn generate_zone_vertices(zone: &Zone) -> Vec<Vec3> {
+    let vec_vertical = Vec3 {
+        x: 0.,
+        y: zone.height / 2.,
+        z: 0.,
+    };
+    let vec_horizontal = Vec3 {
+        x: zone.width / 2.,
+        y: 0.,
+        z: 0.,
+    };
     let verticies: [Vec3; 5] = [
-        zone.position - (zone.vector_base / 2.) - (zone.vector_height / 2.),
-        zone.position - (zone.vector_base / 2.) + (zone.vector_height / 2.),
-        zone.position + (zone.vector_base / 2.) + (zone.vector_height / 2.),
-        zone.position + (zone.vector_base / 2.) - (zone.vector_height / 2.),
-        zone.position - (zone.vector_base / 2.) - (zone.vector_height / 2.),
+        -vec_vertical - vec_horizontal,
+        -vec_vertical + vec_horizontal,
+        vec_vertical + vec_horizontal,
+        vec_vertical - vec_horizontal,
+        -vec_vertical - vec_horizontal,
     ];
 
     return Vec::from(verticies);
+}
+
+fn set_transform_formation(
+    mut commands: Commands,
+    query: Query<(Entity, &Zone), (With<Formation>, Added<Zone>)>,
+) {
+    for (entity, zone) in query.iter() {
+        let mut transform = Transform::from_translation(zone.position);
+        transform.rotate_z(-zone.direction.angle_between(Vec2::Y));
+
+        commands.entity(entity).insert(PbrBundle {
+            transform,
+            ..default()
+        });
+    }
 }
 
 // TODO: use regular mesh?
@@ -19,21 +44,25 @@ fn draw_formation_outline(
     mut commands: Commands,
     mut polyline_materials: ResMut<Assets<PolylineMaterial>>,
     mut polylines: ResMut<Assets<Polyline>>,
-    query: Query<&Zone, Added<Formation>>,
+    query: Query<(Entity, &Zone), Added<Formation>>,
 ) {
-    for zone in query.iter() {
-        commands.spawn(PolylineBundle {
-            polyline: polylines.add(Polyline {
-                vertices: generate_zone_vertices(zone),
-            }),
-            material: polyline_materials.add(PolylineMaterial {
-                width: 1.0,
-                color: Color::RED,
-                perspective: false,
+    for (entity, zone) in query.iter() {
+        let outline = commands
+            .spawn(PolylineBundle {
+                polyline: polylines.add(Polyline {
+                    vertices: generate_zone_vertices(zone),
+                }),
+                material: polyline_materials.add(PolylineMaterial {
+                    width: 1.0,
+                    color: Color::RED,
+                    perspective: false,
+                    ..default()
+                }),
                 ..default()
-            }),
-            ..default()
-        });
+            })
+            .id();
+
+        commands.entity(entity).add_child(outline);
     }
 }
 
@@ -72,7 +101,7 @@ fn handle_formation_slots_removal(
     mut commands: Commands,
     mut removals: RemovedComponents<Slots>,
     query_children: Query<&Children>,
-    query_drawing: Query<&Drawing>,
+    query_drawing: Query<(Entity, &Drawing)>,
 ) {
     for slots in &mut removals {
         let Ok(drawings) = query_children.get(slots) else {
@@ -81,12 +110,13 @@ fn handle_formation_slots_removal(
         };
 
         for drawing in drawings {
-            let Ok(drawing) = query_drawing.get(*drawing) else {
+            let Ok((drawing_container, drawing)) = query_drawing.get(*drawing) else {
                 eprintln!("drawing not found");
                 continue;
             };
 
             commands.entity(drawing.0).despawn();
+            commands.entity(drawing_container).despawn();
         }
     }
 }
@@ -96,7 +126,14 @@ pub struct FormationRendererPlugin;
 impl Plugin for FormationRendererPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(PolylinePlugin)
-            .add_systems(Update, (draw_formation_outline, draw_formation_slots))
+            .add_systems(
+                Update,
+                (
+                    set_transform_formation,
+                    draw_formation_outline,
+                    draw_formation_slots,
+                ),
+            )
             .add_systems(PostUpdate, handle_formation_slots_removal);
     }
 }

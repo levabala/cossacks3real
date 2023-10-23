@@ -152,7 +152,7 @@ fn handle_formation_slots_removal(
     mut commands: Commands,
     mut removals: RemovedComponents<Slots>,
     query_children: Query<&Children>,
-    query_drawing: Query<(Entity, &Drawing)>,
+    query_drawing: Query<Entity, With<Drawing>>,
 ) {
     for slots in &mut removals {
         let Ok(drawings) = query_children.get(slots) else {
@@ -160,14 +160,9 @@ fn handle_formation_slots_removal(
             continue;
         };
 
-        for drawing in drawings {
-            let Ok((drawing_container, drawing)) = query_drawing.get(*drawing) else {
-                eprintln!("drawing not found");
-                continue;
-            };
-
-            commands.entity(drawing.0).despawn();
-            commands.entity(drawing_container).despawn();
+        for drawing_entity in query_drawing.iter_many(drawings) {
+            commands.entity(slots).remove_children(&[drawing_entity]);
+            commands.entity(drawing_entity).despawn_recursive();
         }
     }
 }

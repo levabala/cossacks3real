@@ -22,7 +22,6 @@ fn create_waypoints_for_selected(
     mut query: Query<(Entity, &PickSelection, Option<&mut Waypoints>), With<Unit>>,
 ) {
     for event in events.iter() {
-        println!("------------ create_waypoints_for_selected");
         if event.0.button != PointerButton::Secondary {
             return;
         }

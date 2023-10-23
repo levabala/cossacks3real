@@ -29,7 +29,6 @@ const HIGHLIGHT_TINT: Highlight<StandardMaterial> = Highlight {
 #[derive(Component)]
 pub struct FormationBoxDrawing;
 
-// TODO: modify instead of replace
 fn draw_formation_box(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -40,31 +39,36 @@ fn draw_formation_box(
     for (entity, zone, children_option) in query.iter() {
         match children_option {
             Some(children) => {
-                for pick_box_outdated in query_formation_box.iter_many(children) {
-                    commands.entity(pick_box_outdated).despawn();
+                for pick_box in query_formation_box.iter_many(children) {
+                    commands
+                        .entity(pick_box)
+                        .insert(meshes.add(
+                            shape::Box::new(zone.width, zone.height, FORMATION_HEIGHT).into(),
+                        ));
                 }
             }
-            None => (),
+            None => {
+                let pick_box = commands
+                    .spawn(FormationBoxDrawing)
+                    .insert(PbrBundle {
+                        mesh: meshes
+                            .add(shape::Box::new(zone.width, zone.height, FORMATION_HEIGHT).into()),
+                        material: materials.add(StandardMaterial {
+                            base_color: Color::rgba(1., 1., 0., 0.05),
+                            alpha_mode: AlphaMode::Blend,
+                            unlit: true,
+                            ..default()
+                        }),
+                        ..default()
+                    })
+                    .insert(NotShadowCaster)
+                    .insert(HIGHLIGHT_TINT.clone())
+                    .insert((PickableBundle::default(), RaycastPickTarget::default()))
+                    .id();
+
+                commands.entity(entity).add_child(pick_box);
+            }
         }
-
-        let pick_box = commands
-            .spawn(FormationBoxDrawing)
-            .insert(PbrBundle {
-                mesh: meshes.add(shape::Box::new(zone.width, zone.height, FORMATION_HEIGHT).into()),
-                material: materials.add(StandardMaterial {
-                    base_color: Color::rgba(1., 1., 0., 0.05),
-                    alpha_mode: AlphaMode::Blend,
-                    unlit: true,
-                    ..default()
-                }),
-                ..default()
-            })
-            .insert(NotShadowCaster)
-            .insert(HIGHLIGHT_TINT.clone())
-            .insert((PickableBundle::default(), RaycastPickTarget::default()))
-            .id();
-
-        commands.entity(entity).add_child(pick_box);
     }
 }
 
@@ -83,7 +87,6 @@ fn selected_formation_go_to(
     mut query_formation: Query<(Entity, &Zone), With<Formation>>,
 ) {
     for event in events.iter() {
-        println!("-------------- selected_formation_go_to");
         if event.0.button != PointerButton::Secondary {
             return;
         }

@@ -26,11 +26,10 @@ fn draw_waypoints(
     mut query: Query<(&Waypoints, &mut WaypointsDrawed), With<Unit>>,
 ) {
     for (waypoints, mut waypoints_drawed) in &mut query {
-        // TODO: remove .cloned()
-        for waypoint in waypoints.0.iter().cloned() {
-            match waypoints_drawed.0.iter().position(|w| *w == waypoint) {
+        for waypoint in waypoints.0.iter() {
+            match waypoints_drawed.0.iter().position(|w| w == waypoint) {
                 Some(_) => continue,
-                None => waypoints_drawed.0.push_back(waypoint),
+                None => waypoints_drawed.0.push_back(*waypoint),
             }
 
             commands.spawn(PbrBundle {
@@ -45,7 +44,7 @@ fn draw_waypoints(
                     base_color: Color::RED,
                     ..default()
                 }),
-                transform: Transform::from_translation(waypoint),
+                transform: Transform::from_translation(*waypoint),
                 ..default()
             });
         }

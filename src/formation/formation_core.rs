@@ -20,19 +20,16 @@ impl Zone {
             position,
             width,
             height,
-            direction: Vec2::from_angle(angle)
+            direction: Vec2::from_angle(angle),
         }
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Component, Clone, Debug)]
 pub struct Slot {
     pub position: Vec3,
     pub unit: Option<Entity>,
 }
-
-#[derive(Component)]
-pub struct Slots(pub Vec<Slot>);
 
 #[derive(Component)]
 pub struct SlotsParams {
@@ -73,11 +70,9 @@ impl Default for FormationBundle {
 
 fn generate_slots(
     mut commands: Commands,
-    query: Query<(Entity, &Zone, &SlotsParams), (With<Formation>, Without<Slots>)>,
+    query: Query<(Entity, &Zone, &SlotsParams), (With<Formation>, Without<Slot>)>,
 ) {
     for (entity, zone, slots_params) in query.iter() {
-        let mut slots =
-            Vec::<Slot>::with_capacity((slots_params.rows * slots_params.cols) as usize);
         let vector_vertical = zone.direction * zone.height;
         let vector_horizontal = Vec2 {
             x: -zone.direction.y,
@@ -88,34 +83,39 @@ fn generate_slots(
             let vec_height = vector_vertical / (slots_params.rows - 1) as f32 * index_row as f32
                 - vector_vertical / 2.;
             for index_col in 0..slots_params.cols {
-                let vec_width = vector_horizontal / (slots_params.cols - 1) as f32 * index_col as f32
+                let vec_width = vector_horizontal / (slots_params.cols - 1) as f32
+                    * index_col as f32
                     - vector_horizontal / 2.;
 
                 let vec_delta = vec_height + vec_width;
                 let x = zone.position.x + vec_delta.x;
                 let y = zone.position.y + vec_delta.y;
                 let z = zone.position.z;
-                let slot = Slot {
-                    position: Vec3 { x, y, z },
-                    unit: None,
-                };
 
-                slots.push(slot);
+                let slot = commands
+                    .spawn(Slot {
+                        position: Vec3 { x, y, z },
+                        unit: None,
+                    })
+                    .id();
+                commands.entity(entity).add_child(slot);
             }
         }
-
-        commands.entity(entity).insert(Slots(slots));
     }
 }
 
 fn assign_units(
-    mut query: Query<(&mut Slots, &Units), (With<Formation>, Or<(Changed<Units>, Changed<Slots>)>)>,
+    mut query: Query<
+        (&mut Slot, &Units, &Children),
+        (With<Formation>, Or<(Changed<Units>, Changed<Children>)>),
+    >,
+    mut query_slot: Query<&mut Slot>,
 ) {
-    for (mut slots, units) in &mut query {
+    for (mut slots, units, children) in &mut query {
         let mut units_not_assigned: Vec<&Entity> = Vec::new();
         for unit in units.0.iter() {
             let mut slot_found = false;
-            for slot in slots.0.iter() {
+            for slot in query_slot.iter_many(children) {
                 if Some(unit) == slot.unit.as_ref() {
                     slot_found = true;
                     break;
@@ -129,52 +129,48 @@ fn assign_units(
             units_not_assigned.push(unit);
         }
 
-        // TODO: use iterator
-        let mut slots_not_assigned = Vec::<&mut Slot>::new();
-        for slot in slots.0.iter_mut() {
-            if slot.unit.is_none() {
-                slots_not_assigned.push(slot);
+        let units_not_assigned_len = units_not_assigned.len();
+
+        let mut slots_iter_mut = query_slot.iter_many_mut(children);
+        let mut slot_index = 0;
+        while let Some(mut slot) = slots_iter_mut.fetch_next() {
+            if slot_index >= units_not_assigned_len {
+                break;
             }
-        }
 
-        let slots_to_assign_amount = units_not_assigned.len().min(slots_not_assigned.len());
+            slot.unit = Some(*units_not_assigned[slot_index]);
 
-        let mut i = 0;
-        for slot in &mut slots_not_assigned[..slots_to_assign_amount] {
-            slot.unit = Some(*units_not_assigned[i]);
-            i += 1;
+            slot_index += 1;
         }
     }
 }
 
 fn control_assigned_units(
     mut commands: Commands,
-    query_slot: Query<&Slots, (With<Formation>, Changed<Slots>)>,
+    query_slot: Query<&Slot, (With<Formation>, Changed<Slot>)>,
     query_unit: Query<(&Position, Option<&Waypoints>), With<Unit>>,
 ) {
-    for slots in query_slot.iter() {
-        for slot in slots.0.iter() {
-            match slot.unit {
-                Some(unit_entity) => {
-                    let query_unit_result = query_unit.get(unit_entity);
-                    match query_unit_result {
-                        // TODO: check if unit waypoints are already correct?
-                        Ok((unit_position, _unit_waypoints)) => {
-                            let is_same_position = unit_position.0 == slot.position;
+    for slot in query_slot.iter() {
+        match slot.unit {
+            Some(unit_entity) => {
+                let query_unit_result = query_unit.get(unit_entity);
+                match query_unit_result {
+                    // TODO: check if unit waypoints are already correct?
+                    Ok((unit_position, _unit_waypoints)) => {
+                        let is_same_position = unit_position.0 == slot.position;
 
-                            if !is_same_position {
-                                commands
-                                    .entity(unit_entity)
-                                    .insert(Waypoints(VecDeque::from([slot.position])));
-                            }
-                        }
-                        Err(e) => {
-                            eprintln!("failed to acquire unit position: {:?}", e);
+                        if !is_same_position {
+                            commands
+                                .entity(unit_entity)
+                                .insert(Waypoints(VecDeque::from([slot.position])));
                         }
                     }
+                    Err(e) => {
+                        eprintln!("failed to acquire unit position: {:?}", e);
+                    }
                 }
-                None => (),
             }
+            None => (),
         }
     }
 }

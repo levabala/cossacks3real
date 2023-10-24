@@ -27,7 +27,7 @@ pub struct NextZonesPath(pub VecDeque<NextZone>);
 
 fn move_zone(
     mut commands: Commands,
-    mut query_slot: Query<(Entity, &Slots, &mut NextZonesPath, &mut Zone), With<Formation>>,
+    mut query_slot: Query<(Entity, &Slot, &mut NextZonesPath, &mut Zone), With<Formation>>,
     query_unit: Query<&Position, With<Unit>>,
 ) {
     for (entity, slots, mut next_zones_path, mut zone) in &mut query_slot {

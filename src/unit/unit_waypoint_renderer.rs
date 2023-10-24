@@ -3,12 +3,13 @@ use crate::unit_move::*;
 use bevy::prelude::*;
 use std::collections::VecDeque;
 
+#[derive(Clone, Copy, Debug)]
 struct WaypointDrawed {
     position: Vec3,
     entity: Entity,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 struct WaypointDrawedList(VecDeque<WaypointDrawed>);
 
 const SIZE: f32 = 1.0;
@@ -31,46 +32,52 @@ fn draw_waypoints(
     mut query: Query<(&Waypoints, &mut WaypointDrawedList), (With<Unit>, Changed<Waypoints>)>,
 ) {
     for (waypoint_list, mut waypoint_drawed_list) in &mut query {
-        // TODO: compare only the first and the last one
-        for waypoint_drawed in waypoint_drawed_list.0.iter() {
-            let is_waypoint_deleted = !waypoint_list.0.contains(&waypoint_drawed.position);
-            if is_waypoint_deleted {
+        if let Some(waypoint_first) = waypoint_list.0.get(0) {
+            let mut pop_until_index_option: Option<usize> = None;
+            for (index, waypoint_drawed) in waypoint_drawed_list.0.iter().enumerate() {
+                if &waypoint_drawed.position == waypoint_first {
+                    break;
+                }
+
                 commands.entity(waypoint_drawed.entity).despawn();
-                waypoint_drawed_list.0.pop_back();
+                pop_until_index_option = Some(index);
+            }
+
+            if let Some(pop_until_index) = pop_until_index_option {
+                waypoint_drawed_list.0.drain(0..=pop_until_index);
             }
         }
 
-        for waypoint in waypoint_list.0.iter() {
-            let is_waypoint_added = waypoint_drawed_list
-                .0
-                .iter()
-                .position(|w| &w.position == waypoint)
-                .is_none();
-
-            if is_waypoint_added {
-                let waypoint_drawing = commands
-                    .spawn(PbrBundle {
-                        mesh: meshes.add(
-                            shape::UVSphere {
-                                radius: SIZE,
-                                ..default()
-                            }
-                            .into(),
-                        ),
-                        material: materials.add(StandardMaterial {
-                            base_color: Color::RED,
-                            ..default()
-                        }),
-                        transform: Transform::from_translation(*waypoint),
-                        ..default()
-                    })
-                    .id();
-
-                waypoint_drawed_list.0.push_back(WaypointDrawed {
-                    position: *waypoint,
-                    entity: waypoint_drawing,
-                });
+        let waypoint_drawed_last_option = waypoint_drawed_list.0.back().map(|r| *r);
+        for waypoint in waypoint_list.0.iter().rev() {
+            if let Some(waypoint_drawed_last) = waypoint_drawed_last_option {
+                if *waypoint == waypoint_drawed_last.position {
+                    break;
+                }
             }
+
+            let waypoint_drawing = commands
+                .spawn(PbrBundle {
+                    mesh: meshes.add(
+                        shape::UVSphere {
+                            radius: SIZE,
+                            ..default()
+                        }
+                        .into(),
+                    ),
+                    material: materials.add(StandardMaterial {
+                        base_color: Color::RED,
+                        ..default()
+                    }),
+                    transform: Transform::from_translation(*waypoint),
+                    ..default()
+                })
+                .id();
+
+            waypoint_drawed_list.0.push_back(WaypointDrawed {
+                position: *waypoint,
+                entity: waypoint_drawing,
+            });
         }
     }
 }

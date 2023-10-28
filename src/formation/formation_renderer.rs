@@ -124,46 +124,18 @@ fn draw_formation_slots(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    query: Query<(Entity, &Slots), Added<Slots>>,
+    query: Query<(Entity, &Slot), Added<Slot>>,
 ) {
-    for (entity, slots) in query.iter() {
-        for slot in &slots.0 {
-            let drawing = commands
-                .spawn(PbrBundle {
-                    mesh: meshes.add(shape::Circle::new(2.5).into()),
-                    material: materials.add(StandardMaterial {
-                        base_color: Color::YELLOW,
-                        ..default()
-                    }),
-                    transform: Transform::from_translation(slot.position),
-                    ..default()
-                })
-                .id();
-
-            let drawing_linking = commands.spawn(Drawing(drawing)).id();
-
-            commands.entity(entity).add_child(drawing_linking);
-        }
-    }
-}
-
-// TODO: do not remove. just move them duh
-fn handle_formation_slots_removal(
-    mut commands: Commands,
-    mut removals: RemovedComponents<Slots>,
-    query_children: Query<&Children>,
-    query_drawing: Query<Entity, With<Drawing>>,
-) {
-    for slots in &mut removals {
-        let Ok(drawings) = query_children.get(slots) else {
-            eprintln!("matching drawings not found");
-            continue;
-        };
-
-        for drawing_entity in query_drawing.iter_many(drawings) {
-            commands.entity(slots).remove_children(&[drawing_entity]);
-            commands.entity(drawing_entity).despawn_recursive();
-        }
+    for (entity, slot) in query.iter() {
+        commands.entity(entity).insert(PbrBundle {
+            mesh: meshes.add(shape::Circle::new(2.5).into()),
+            material: materials.add(StandardMaterial {
+                base_color: Color::YELLOW,
+                ..default()
+            }),
+            transform: Transform::from_translation(slot.position_relative),
+            ..default()
+        });
     }
 }
 
@@ -171,17 +143,15 @@ pub struct FormationRendererPlugin;
 
 impl Plugin for FormationRendererPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(PolylinePlugin)
-            .add_systems(
-                Update,
-                (
-                    setup_transform_formation,
-                    update_transform_formation,
-                    draw_formation_outline,
-                    draw_formation_slots,
-                    update_formation_outline,
-                ),
-            )
-            .add_systems(PostUpdate, handle_formation_slots_removal);
+        app.add_plugins(PolylinePlugin).add_systems(
+            Update,
+            (
+                setup_transform_formation,
+                update_transform_formation,
+                draw_formation_outline,
+                draw_formation_slots,
+                update_formation_outline,
+            ),
+        );
     }
 }

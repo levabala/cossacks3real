@@ -1,12 +1,15 @@
 use crate::formation::formation_core::*;
 use crate::formation_move::*;
+use crate::map::map_core::Map;
 use crate::unit::unit_core::*;
 use crate::unit_move::MaxSpeed;
 use bevy::prelude::*;
 use rand::Rng;
 use std::collections::VecDeque;
 
-fn formation_add(mut commands: Commands) {
+fn formation_add(mut commands: Commands, query_map: Query<Entity, With<Map>>) {
+    let map_entity = query_map.single();
+
     let mut rng = rand::thread_rng();
 
     let units = (0..15)
@@ -27,7 +30,7 @@ fn formation_add(mut commands: Commands) {
         })
         .collect::<Vec<Entity>>();
 
-    commands
+    let formation = commands
         .spawn(FormationBundle {
             units: Units(units),
             zone: Zone::new(
@@ -63,7 +66,10 @@ fn formation_add(mut commands: Commands) {
                 50.,
                 std::f32::consts::PI * 1.2,
             ),
-        ])));
+        ])))
+        .id();
+
+    commands.entity(map_entity).add_child(formation);
 }
 
 pub struct FormationTestEntitiesPlugin;

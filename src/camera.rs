@@ -9,7 +9,7 @@ fn setup(mut commands: Commands) {
         .spawn(Camera3dBundle::default())
         .insert(OrbitCameraBundle::new(
             OrbitCameraController {
-                mouse_translate_sensitivity: Vec2::splat(10.),
+                mouse_translate_sensitivity: Vec2::splat(0.),
                 ..default()
             },
             Vec3::new(-50., -100., 300.0),

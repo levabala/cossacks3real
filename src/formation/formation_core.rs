@@ -6,7 +6,7 @@ use std::collections::VecDeque;
 #[derive(Component)]
 pub struct Formation;
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct Zone {
     pub position: Vec3,
     pub width: f32,
@@ -147,7 +147,7 @@ fn assign_units(
         let mut slots_iter_mut = query_slot.iter_many_mut(children);
         let mut slot_index = 0;
         while let Some(mut slot) = slots_iter_mut.fetch_next() {
-            if slot_index >= units_not_assigned_len {
+            if slot.unit.is_some() || slot_index >= units_not_assigned_len {
                 break;
             }
 

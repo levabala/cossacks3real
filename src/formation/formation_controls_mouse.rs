@@ -1,6 +1,9 @@
 use std::collections::VecDeque;
 
-use crate::{formation::formation_core::*, map::map_controls_mouse::MapClickEvent};
+use crate::{
+    formation::formation_core::*,
+    map::map_controls_mouse::{MapDragStartEvent, MapUpEvent},
+};
 use bevy::{pbr::NotShadowCaster, prelude::*};
 use bevy_mod_picking::prelude::*;
 
@@ -80,18 +83,23 @@ fn make_formation_pickable(mut commands: Commands, query: Query<Entity, Added<Fo
     }
 }
 
-fn selected_formation_go_to(
-    mut events: EventReader<MapClickEvent>,
+#[derive(Component, Debug)]
+struct FormationNewZonePreview {
+    top_right: Vec3,
+}
+
+fn selected_formation_create_preview(
+    mut events: EventReader<MapDragStartEvent>,
     mut commands: Commands,
     mut query_select: Query<(&PickSelection, &mut Parent), With<FormationBoxDrawing>>,
-    mut query_formation: Query<(Entity, &Zone), With<Formation>>,
+    mut query_formation: Query<Entity, With<Formation>>,
 ) {
     for event in events.iter() {
         if event.0.button != PointerButton::Secondary {
             return;
         }
 
-        let Some(position) = event.0.hit.position else {
+        let Some(hit_position) = event.0.hit.position else {
             eprintln!("no position is presented");
             return;
         };
@@ -101,24 +109,125 @@ fn selected_formation_go_to(
                 continue;
             }
 
-            let Ok(( formation, zone )) = query_formation.get_mut(parent.get()) else {
+            let Ok(formation) = query_formation.get_mut(parent.get()) else {
                 eprintln!("not found matching formation");
                 continue;
             };
 
-            let next_position = Vec3 {
-                z: zone.position.z,
-                ..position
+            let zone_preview = commands
+                .spawn(FormationNewZonePreview {
+                    top_right: hit_position,
+                })
+                .id();
+            commands.entity(formation).add_child(zone_preview);
+        }
+    }
+}
+
+const MIN_DISTANCE_TO_BE_ADJUSTED: f32 = 20.;
+
+fn selected_formation_go_to_adjusted(
+    mut events: EventReader<MapUpEvent>,
+    mut commands: Commands,
+    mut query_select: Query<(&PickSelection, &mut Parent), With<FormationBoxDrawing>>,
+    mut query_formation: Query<(Entity, &Zone, &Children), With<Formation>>,
+    query_new_zone_preview: Query<(Entity, &FormationNewZonePreview)>,
+) {
+    for event in events.iter() {
+        if event.0.button != PointerButton::Secondary {
+            return;
+        }
+
+        let Some(top_right) = event.0.hit.position else {
+            eprintln!("not found matching formation");
+            continue;
+        };
+
+        for (pick_selection, parent) in &mut query_select {
+            if !pick_selection.is_selected {
+                continue;
+            }
+
+            let Ok(( formation, zone, formation_children )) =
+                query_formation.get_mut(parent.get()) else {
+                    eprintln!("not found matching formation");
+                    continue;
+                };
+            let Some((new_zone_preview_entity, new_zone_preview)) =
+                query_new_zone_preview.iter_many(formation_children).next() else {
+                    let next_position = Vec3 {
+                        z: zone.position.z,
+                        ..top_right
+                    };
+
+                    commands
+                        .entity(formation)
+                        .insert(NextZonesPath(VecDeque::from([NextZone {
+                            position: next_position,
+                            width: zone.width,
+                            height: zone.height,
+                            direction: zone.direction,
+                        }])));
+                    continue;
+                };
+
+            let area = zone.width * zone.height;
+            let distance = Vec2::new(
+                top_right.x - new_zone_preview.top_right.x,
+                top_right.y - new_zone_preview.top_right.y,
+            );
+            let width = distance.length();
+            let height = area / width;
+
+            let distance_3d = Vec3 {
+                x: distance.x,
+                y: distance.y,
+                z: 0.,
+            };
+
+            if width < MIN_DISTANCE_TO_BE_ADJUSTED {
+                let next_position = Vec3 {
+                    z: zone.position.z,
+                    ..(top_right + distance_3d / 2.)
+                };
+
+                commands
+                    .entity(formation)
+                    .insert(NextZonesPath(VecDeque::from([NextZone {
+                        position: next_position,
+                        width: zone.width,
+                        height: zone.height,
+                        direction: zone.direction,
+                    }])));
+                continue;
+            }
+
+            let distance_norm = distance.normalize();
+            let direction = Vec2 {
+                x: -distance_norm.y,
+                y: distance_norm.x,
+            };
+
+            let direction_3d = Vec3 {
+                x: direction.x,
+                y: direction.y,
+                z: 0.,
+            };
+            let position = Vec3 {
+                z: 0.,
+                ..(new_zone_preview.top_right + distance_3d / 2. - direction_3d * height / 2.)
             };
 
             commands
                 .entity(formation)
                 .insert(NextZonesPath(VecDeque::from([NextZone {
-                    position: next_position,
-                    width: zone.width,
-                    height: zone.height,
-                    direction: zone.direction,
+                    position,
+                    width,
+                    height,
+                    direction,
                 }])));
+
+            commands.entity(new_zone_preview_entity).despawn();
         }
     }
 }
@@ -132,7 +241,8 @@ impl Plugin for FormationControlsMousePlugin {
             (
                 draw_formation_box,
                 make_formation_pickable,
-                selected_formation_go_to,
+                selected_formation_go_to_adjusted,
+                selected_formation_create_preview,
             ),
         );
     }

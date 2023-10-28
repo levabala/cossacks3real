@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use std::collections::VecDeque;
 
 // TODO: prevent dublication. can't use Zone because it's treated as component.. (just wrap it?)
+#[derive(Debug)]
 pub struct NextZone {
     pub position: Vec3,
     pub width: f32,
@@ -57,8 +58,6 @@ fn move_zone(
         if !all_units_at_slots || !any_unit_found {
             continue;
         }
-
-        println!("all units at their slots. moving to the next zone");
 
         let next_zone_option = next_zones_path.0.pop_back();
         let Some(next_zone) = next_zone_option else { eprintln!("no next zone found"); continue; };

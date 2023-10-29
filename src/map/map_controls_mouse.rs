@@ -6,34 +6,22 @@ use bevy_mod_picking::{
     PickableBundle,
 };
 
-#[derive(Event)]
-pub struct MapClickEvent(pub ListenerInput<Pointer<Click>>);
+macro_rules! generate_event_struct {
+    ($struct_name:ident, $event_type:ty) => {
+        #[derive(Event)]
+        pub struct $struct_name(pub ListenerInput<Pointer<$event_type>>);
 
-// https://github.com/aevyrie/bevy_mod_picking/blame/2ec0793ef747990b710bb08e446bbaf91e2d1e62/examples/event_listener.rs#L94
-// TODO: simplify? auto-export all events? (macros?..)
-impl From<ListenerInput<Pointer<Click>>> for MapClickEvent {
-    fn from(event: ListenerInput<Pointer<Click>>) -> Self {
-        MapClickEvent(event)
-    }
+        impl From<ListenerInput<Pointer<$event_type>>> for $struct_name {
+            fn from(event: ListenerInput<Pointer<$event_type>>) -> Self {
+                $struct_name(event)
+            }
+        }
+    };
 }
 
-#[derive(Event)]
-pub struct MapUpEvent(pub ListenerInput<Pointer<Up>>);
-
-impl From<ListenerInput<Pointer<Up>>> for MapUpEvent {
-    fn from(event: ListenerInput<Pointer<Up>>) -> Self {
-        MapUpEvent(event)
-    }
-}
-
-#[derive(Event)]
-pub struct MapDragStartEvent(pub ListenerInput<Pointer<DragStart>>);
-
-impl From<ListenerInput<Pointer<DragStart>>> for MapDragStartEvent {
-    fn from(event: ListenerInput<Pointer<DragStart>>) -> Self {
-        MapDragStartEvent(event)
-    }
-}
+generate_event_struct!(MapClickEvent, Click);
+generate_event_struct!(MapUpEvent, Up);
+generate_event_struct!(MapDragStartEvent, DragStart);
 
 fn setup_pickable(mut commands: Commands, query: Query<Entity, Added<Map>>) {
     for entity in query.iter() {

@@ -91,8 +91,10 @@ struct FormationNewZonePreview {
 fn selected_formation_create_preview(
     mut events: EventReader<MapDragStartEvent>,
     mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
     mut query_select: Query<(&PickSelection, &mut Parent), With<FormationBoxDrawing>>,
-    mut query_formation: Query<Entity, With<Formation>>,
+    mut query_formation: Query<(Entity, &Zone), With<Formation>>,
 ) {
     for event in events.iter() {
         if event.0.button != PointerButton::Secondary {
@@ -109,7 +111,7 @@ fn selected_formation_create_preview(
                 continue;
             }
 
-            let Ok(formation) = query_formation.get_mut(parent.get()) else {
+            let Ok((formation, zone)) = query_formation.get_mut(parent.get()) else {
                 eprintln!("not found matching formation");
                 continue;
             };
@@ -117,6 +119,14 @@ fn selected_formation_create_preview(
             let zone_preview = commands
                 .spawn(FormationNewZonePreview {
                     top_right: hit_position,
+                })
+                .insert(PbrBundle {
+                    mesh: meshes.add(shape::Box::new(zone.width, zone.height, 1.).into()),
+                    material: materials.add(StandardMaterial {
+                        base_color: Color::from(Vec4::new(0.9, 0.7, 0.0, 0.2)),
+                        ..default()
+                    }),
+                    ..default()
                 })
                 .id();
             commands.entity(formation).add_child(zone_preview);

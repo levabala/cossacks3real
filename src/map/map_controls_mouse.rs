@@ -1,7 +1,7 @@
 use crate::map::map_core::*;
 use bevy::prelude::*;
 use bevy_mod_picking::{
-    prelude::{Click, ListenerInput, On, PickHighlight, Pointer, RaycastPickTarget, DragStart, Up},
+    prelude::{Click, ListenerInput, On, PickHighlight, Pointer, RaycastPickTarget, DragStart, Up, Drag},
     selection::PickSelection,
     PickableBundle,
 };
@@ -19,9 +19,11 @@ macro_rules! generate_event_struct {
     };
 }
 
+// TODO: i want to call it like `generate_event_struct!(Click)` (how to prefix $struct_name?)
 generate_event_struct!(MapClickEvent, Click);
 generate_event_struct!(MapUpEvent, Up);
 generate_event_struct!(MapDragStartEvent, DragStart);
+generate_event_struct!(MapDragEvent, Drag);
 
 fn setup_pickable(mut commands: Commands, query: Query<Entity, Added<Map>>) {
     for entity in query.iter() {
@@ -30,6 +32,7 @@ fn setup_pickable(mut commands: Commands, query: Query<Entity, Added<Map>>) {
             .insert((PickableBundle::default(), RaycastPickTarget::default()))
             .insert(On::<Pointer<Click>>::send_event::<MapClickEvent>())
             .insert(On::<Pointer<DragStart>>::send_event::<MapDragStartEvent>())
+            .insert(On::<Pointer<Drag>>::send_event::<MapDragEvent>())
             .insert(On::<Pointer<Up>>::send_event::<MapUpEvent>())
             .remove::<(PickSelection, PickHighlight)>();
     }
@@ -42,6 +45,7 @@ impl Plugin for MapControlsMousePlugin {
         app.add_systems(Update, setup_pickable)
             .add_event::<MapClickEvent>()
             .add_event::<MapDragStartEvent>()
+            .add_event::<MapDragEvent>()
             .add_event::<MapUpEvent>();
     }
 }
